@@ -19,7 +19,7 @@ for libname in libnames:
         globals()[libname] = lib
 
 PWD = os.path.dirname(os.path.abspath(__file__))
-GIT_DEFAULT_BRANCH = 'ci_github_actions'
+GIT_DEFAULT_BRANCH = 'refs/heads/ci_github_actions'
 PR_MESSAGE_BODY = os.path.join(PWD, 'pr_body.md')
 
 
@@ -75,7 +75,8 @@ def main(argv=sys.argv[1:]):
     HUB_RELEASE = os.environ['HUB_RELEASE']
     HUB_OS_NAME = os.environ['HUB_OS_NAME']
     HUB_OS_CODE_NAME = os.environ['HUB_OS_CODE_NAME']
-    GIT_BRANCH = os.environ['GITHUB_BASE_REF']
+    GIT_BASE_BRANCH = os.environ['GITHUB_BASE_REF']
+    GIT_BRANCH = os.environ['GITHUB_REF']
     GIT_PULL_REQUEST_BRANCH = os.environ['GITHUB_HEAD_REF']
     GIT_UPSTREAM_REPO_SLUG = os.environ['GITHUB_REPOSITORY']
     GIT_BUILD_DIR = os.environ['GITHUB_WORKSPACE']
@@ -91,12 +92,11 @@ def main(argv=sys.argv[1:]):
     print("GIT_PULL_REQUEST_BRANCH: ", GIT_PULL_REQUEST_BRANCH)
 
     # Private environment variables, not available for pull requests from forks
-    GIT_USER = os.environ.get('GITHUB_USER', '')
-    GIT_EMAIL = os.environ.get('GITHUB_EMAIL', '')
+    GIT_USER = os.environ.get('GITHUBUSER', '')
+    GIT_EMAIL = os.environ.get('GITHUBEMAIL', '')
     GIT_TOKEN = os.environ.get('GITHUBTOKEN', '')
     GIT_AUTHOR = "{user} <{email}>".format(user=GIT_USER, email=GIT_EMAIL)
-    GIT_ORIGIN_REPO_SLUG = GIT_USER + '/' + \
-        GIT_UPSTREAM_REPO_SLUG.split('/')[1]
+    GIT_ORIGIN_REPO_SLUG = GIT_USER + '/' + GIT_UPSTREAM_REPO_SLUG.split('/')[1]
     GIT_REMOTE_ORIGIN_TOKEN_URL = "https://{user}:{token}@github.com/{repo_slug}.git".format(
         user=GIT_USER,
         token=GIT_TOKEN,
@@ -127,7 +127,7 @@ def main(argv=sys.argv[1:]):
         # and that all dockerfiles are up to date
         test_diffs(diffs)
 
-        target = repo.branches[GIT_BRANCH].commit
+        target = repo.branches[GIT_BASE_BRANCH].commit
         pull_request = repo.head.commit
         pr_diffs = target.diff(pull_request, paths=[hub_tag_dir])
 
